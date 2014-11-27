@@ -18,6 +18,11 @@
 #   in order to be grabbed won't display their size as the filenames haven't 
 #   been stripped of their garbage URL info yet. It'll say 0 bytes, but don't 
 #   worry, they've downloaded. 
+"""
+test
+"""
+
+### ERROR - Unicoce encoding error in string. Cannot convert to ASCII. Skipping...
 
 
 import os
@@ -48,12 +53,19 @@ MODE_MAIL_LIST = 78
 MODE_EXPORT = 79
 MODE_IMPORT = 80
 
-NUM_MAX_DOWNLOADS = 4
+## Max Downloads ved -d
+NUM_MAX_DOWNLOADS = 5
 
-DOWNLOAD_DIRECTORY = "podcasts"
+## Dir for downloads
+## These should not have leading / as it is added later
+DOWNLOAD_DIRECTORY = 'mp3/Podcasts'
+M3U_Directory = 'Spillelister/Podcasts/Etter_Dato'
+DB_Dir = ''
 
 # Added 2011-10-06 Werner Avenant - added current_dictory here so it can be global
-current_directory = ''
+## rot-dir for alle podcasts og m3u-filer
+## OBS! Sjekk at path fra raspberry er lik, /LkG/
+current_directory = '/nfs/LkG/LkG_Music'
 m3u_file = ''
 
 
@@ -73,11 +85,13 @@ def main(argv):
 	message = ""
 	mail = ""
 	# Added 2011-10-06 Werner Avenant
-	global current_directory
+	#global current_directory
 	global m3u_file 
 	now = datetime.datetime.now();
-	m3u_file = str(now)[:10] + '.m3u' 
-	current_directory = os.path.realpath(os.path.dirname(sys.argv[0]))
+	m3u_file = 'Spilleliste_for_Podcasts_' + str(now)[:10] + '.m3u' 
+	#current_directory = os.path.realpath(os.path.dirname(sys.argv[0]))
+	## Tok ut den over, DB kommer der prog. kjoerer fra (under)
+	DB_Dir = os.path.realpath(os.path.dirname(sys.argv[0]))
 	download_directory = current_directory + os.sep + DOWNLOAD_DIRECTORY
 
 	global total_items
@@ -157,8 +171,8 @@ def main(argv):
 	print "Default encoding: " + sys.getdefaultencoding()
 	todays_date = strftime("%a, %d %b %Y %H:%M:%S", gmtime())
 	print "Current Directory: ", current_directory
-	if does_database_exist(current_directory):
-		connection = connect_database(current_directory)
+	if does_database_exist(DB_Dir):
+		connection = connect_database(DB_Dir)
 		if not connection:
 			error_string = "Could not connect to PodGrab database file!"
 			has_error = 1
@@ -166,7 +180,7 @@ def main(argv):
 			cursor = connection.cursor()
 	else:
 		print "PodGrab database missing. Creating..."
-		connection = connect_database(current_directory)
+		connection = connect_database(DB_Dir)
 		if not connection:
 			error_string = "Could not create PodGrab database file!"
 			has_error = 1
@@ -208,8 +222,8 @@ def main(argv):
 			print "Updating all podcast subscriptions..."
 			subs = get_subscriptions(cursor, connection)
 			for sub in subs:
-				feed_name = sub[0]
-				feed_url = sub[1]
+				feed_name = sub[0].encode('utf-8')
+				feed_url = sub[1].encode('utf-8')
 				print "Feed for subscription: '" + feed_name + "' from '" + feed_url + "' is updating..."
 				data = open_datasource(feed_url)
 				if not data:
@@ -332,7 +346,9 @@ def iterate_feed(data, mode, download_dir, today, cur, conn, feed):
 		xml_data = xml.dom.minidom.parseString(data)
         	for channel in xml_data.getElementsByTagName('channel'):
         		channel_title = channel.getElementsByTagName('title')[0].firstChild.data
+			channel_title = channel_title.encode('utf-8')
                 	channel_link = channel.getElementsByTagName('link')[0].firstChild.data
+			channel_link = channel_link.encode('utf-8')
                 	print "Channel Title: ===" + channel_title + "==="
                 	print "Channel Link: " + channel_link
 			channel_title = clean_string(channel_title)
@@ -361,7 +377,7 @@ def iterate_feed(data, mode, download_dir, today, cur, conn, feed):
                         	num_podcasts = iterate_channel(channel, today, mode, cur, conn, feed, channel_title)
                         	message += str(num_podcasts) + " have been downloaded from your subscription: '" + channel_title + "'\n"
 	except xml.parsers.expat.ExpatError:
-		print "ERROR - Malformed XML syntax in feed. Skipping..."
+		print "ERROR - Malformed XML syntax in feed. Skipping...DRITT!!"
 		message += "0 podcasts have been downloaded from this feed due to RSS syntax problems. Please try again later"
 	except UnicodeEncodeError:
 		print "ERROR - Unicoce encoding error in string. Cannot convert to ASCII. Skipping..."
@@ -384,15 +400,16 @@ def clean_string(str):
 			new_string_final = new_string_final.replace('---','-')
 			new_string_final = new_string_final.replace('--','-')
 
-	return new_string_final
+	## Maatte legge til .encode('utf-8') for aa fungere med norsk.
+	return new_string_final.encode('utf-8')
 
 # Change 2011-10-06 - Changed chan_loc to channel_title to help with relative path names
 # in the m3u file
 def write_podcast(item, channel_title, date, type):
 	(item_path, item_file_name) = os.path.split(item)
 	
-	if len(item_file_name) > 50:
-		item_file_name = item_file_name[:50]
+	if len(item_file_name) > 60:
+		item_file_name = item_file_name[:60]
 	
 	local_file = current_directory + os.sep + DOWNLOAD_DIRECTORY + os.sep + channel_title + os.sep + clean_string(item_file_name)
 	if type == "video/quicktime" or type == "audio/mp4" or type == "video/mp4":
@@ -438,14 +455,14 @@ def write_podcast(item, channel_title, date, type):
 			output = open(local_file, 'wb')
 			# 2011-10-06 Werner Avenant - For some reason the file name changes when 
 			# saved to disk - probably a python feature (sorry, only wrote my first line of python today)
-			item_file_name = os.path.basename(output.name)  
+			item_file_name = os.path.basename(output.name).encode('utf-8')  
 			output.write(item_file.read())
 			output.close()
 			print "Podcast: ", item, " downloaded to: ", local_file
 			
 			# 2011-11-06 Append to m3u file
-			output = open(current_directory + os.sep + m3u_file, 'a')
-			output.write(DOWNLOAD_DIRECTORY + os.sep + channel_title + os.sep + item_file_name + "\n")
+			output = open(current_directory + os.sep + M3U_Directory + os.sep + m3u_file, 'a')
+			output.write(current_directory + os.sep + DOWNLOAD_DIRECTORY + os.sep + channel_title + os.sep + item_file_name + "\n")
 			output.close()
 			return 'Successful Write'
 		except urllib2.URLError as e:
@@ -654,7 +671,7 @@ def get_name_from_feed(cur, conn, url):
 		return_string = ''.join(return_string)
 	except TypeError:
 		return_string = "None"
-	return str(return_string)
+	return str(return_string).encode('utf-8')
 
 
 def list_subscriptions(cur, conn):
