@@ -53,21 +53,31 @@ MODE_MAIL_LIST = 78
 MODE_EXPORT = 79
 MODE_IMPORT = 80
 
-## Max Downloads ved -d
+
+# --- User Setup - Start -----------------------------------------------------------------------------
+
+## Max Downloads (when running with option -d)
 NUM_MAX_DOWNLOADS = 5
 
-## Dir for downloads
-## These should not have leading / as it is added later
-DOWNLOAD_DIRECTORY = 'mp3/Podcasts'
-M3U_Directory = 'Spillelister/Podcasts/Etter_Dato'
-DB_Dir = ''
+## Set directories for downloads
 
-# Added 2011-10-06 Werner Avenant - added current_dictory here so it can be global
-## rot-dir for alle podcasts og m3u-filer
-## OBS! Sjekk at path fra raspberry er lik, /LkG/
+## root-dir for alle podcasts og m3u-filer
 current_directory = '/nfs/LkG/LkG_Music'
 m3u_file = ''
 
+## These should not have leading / as it is added later
+# For the podcasts themselves
+DOWNLOAD_DIRECTORY = 'mp3/Podcasts'
+# For the playlists
+M3U_Directory = 'Spillelister/Podcasts/Etter_Dato'
+
+# For the database. 
+## If this is set to blank, it uses the samme dir as the program itself
+DB_Dir = ''
+
+
+
+# --- User Setup - End -----------------------------------------------------------------------------
 
 total_item = 0
 total_size = 0
