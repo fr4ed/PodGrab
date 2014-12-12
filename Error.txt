@@ -1,0 +1,50 @@
+12.Dec14
+Traceback (most recent call last):
+  File "./PodGrab.py", line 716, in <module>
+    main(sys.argv[1:])
+  File "./PodGrab.py", line 231, in main
+    message = iterate_feed(data, mode, download_directory, todays_date, cursor,
+connection, feed_url)
+  File "./PodGrab.py", line 376, in iterate_feed
+    num_podcasts = iterate_channel(channel, today, mode, cur, conn, feed, channel_title)
+  File "./PodGrab.py", line 605, in iterate_channel
+    if mktime(struct_time_item) > mktime(struct_last_ep) or mode == MODE_DOWNLOAD:
+UnboundLocalError: local variable 'struct_time_item' referenced before assignment
+rm: cannot remove `/nfs/LkG/LkG_Music/Spillelister/Podcasts/Etter_Show': Is a directory
+mv: cannot move `/nfs/LkG/LkG_Music/Spillelister/Podcasts/Vekking/Spilleliste_for_Podcasts_2014-12-12.m3u' to `/nfs/LkG_Music/Spillelister/Podcasts/Vekking/Vekkeliste.m3u': No such file or directory
+
+
+
+Default encoding: ascii
+Current Directory:  /nfs/LkG/LkG_Music
+Download directory exists: '/nfs/LkG/LkG_Music/mp3/Podcasts'
+Iterating feed...
+Channel Title: ===Richard Herring's Leicester Square Theatre Podcast===
+Channel Link: http://www.comedy.co.uk/podcasts/richard_herring_lst_podcast/
+Current Date:  Fri, 12 Dec 2014 20:34:17
+Bulk download. Processing...
+Iterating channel...
+Podcast subscription exists
+Traceback (most recent call last):
+  File "./PodGrab.py", line 716, in <module>
+    main(sys.argv[1:])
+  File "./PodGrab.py", line 239, in main
+    print iterate_feed(data, mode, download_directory, todays_date, cursor, connection, feed_url)
+  File "./PodGrab.py", line 362, in iterate_feed
+    num_podcasts = iterate_channel(channel, today, mode, cur, conn, feed, channel_title)
+  File "./PodGrab.py", line 605, in iterate_channel
+    if mktime(struct_time_item) > mktime(struct_last_ep) or mode == MODE_DOWNLOAD:
+UnboundLocalError: local variable 'struct_time_item' referenced before assignment
+
+
+After adding struct_time_item this instead:
+
+ File "./PodGrab.py", line 621, in iterate_channel
+    update_subscription(cur, conn, feed, fix_date(item_date))
+  File "./PodGrab.py", line 706, in update_subscription
+    if mktime(strptime(existing_last_ep, "%a, %d %b %Y %H:%M:%S")) <= mktime(strptime(date, "%a, %d %b %Y %H:%M:%S")):
+  File "/usr/lib/python2.7/_strptime.py", line 467, in _strptime_time
+    return _strptime(data_string, format)[0]
+  File "/usr/lib/python2.7/_strptime.py", line 325, in _strptime
+    (data_string, format))
+ValueError: time data u'Wed, 10 Dec 2014 17:50' does not match format '%a, %d %b %Y %H:%M:%S'

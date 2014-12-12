@@ -62,14 +62,14 @@ NUM_MAX_DOWNLOADS = 5
 ## Set directories for downloads
 
 ## root-dir for alle podcasts og m3u-filer
-current_directory = '/nfs/LkG/LkG_Music'
+current_directory = ''
 m3u_file = ''
 
-## These should not have leading / as it is added later
+## These should not have leading / as it is added later (this should be changed so everything can be included as /xx/
 # For the podcasts themselves
-DOWNLOAD_DIRECTORY = 'mp3/Podcasts'
+DOWNLOAD_DIRECTORY = ''
 # For the playlists
-M3U_Directory = 'Spillelister/Podcasts/Etter_Dato'
+M3U_Directory = ''
 
 # For the database. 
 ## If this is set to blank, it uses the samme dir as the program itself
@@ -593,14 +593,17 @@ def iterate_channel(chan, today, mode, cur, conn, feed, channel_title):
 			item_size = item.getElementsByTagName('enclosure')[0].getAttribute('length')
 			item_type = item.getElementsByTagName('enclosure')[0].getAttribute('type')
 			struct_time_today = strptime(today, "%a, %d %b %Y %H:%M:%S")
-			
+			# struct_time_item = strptime(today, "%a, %d %b %Y %H:%M:%S") 
+
 			try:
 				struct_time_item = strptime(fix_date(item_date), "%a, %d %b %Y %H:%M:%S")
 				has_error = 0	
 			except TypeError:
 				has_error = 1
+				print "This item has a badly formatted date. Cannot download!"
 			except ValueError:
 				has_error = 1
+				print "This item has a badly formatted date. Cannot download!"
 			
 			try:
 				struct_last_ep = strptime(last_ep, "%a, %d %b %Y %H:%M:%S")
